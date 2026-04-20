@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate, Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
-import './Auth.css';
+import { FiMail, FiLock, FiLogIn, FiBook } from 'react-icons/fi';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -11,59 +12,99 @@ const Login = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
+    setLoading(true);
     try {
-      setError('');
-      setLoading(true);
       await login(email, password);
-      toast.success('Successfully logged in!');
-      navigate('/');
-    } catch (error) {
-      console.error(error);
-      toast.error(`Error: ${error.message}`);
+      toast.success('Welcome back!');
+      navigate('/dashboard');
+    } catch (err) {
+      const msg = err.code === 'auth/invalid-credential'
+        ? 'Invalid email or password.'
+        : err.message;
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="auth-container">
-      <div className="auth-card">
-        <h2>Welcome Back</h2>
-        <p className="auth-subtitle">Log in to manage your cart and wishlist.</p>
-        
-        <form onSubmit={handleSubmit} className="auth-form">
-          <div className="form-group">
-            <label>Email</label>
-            <input 
-              type="email" 
-              required 
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh', padding: '20px' }}>
+      <motion.div
+        className="glass-card"
+        initial={{ scale: 0.92, opacity: 0, y: 20 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        style={{ width: '100%', maxWidth: '420px', padding: '40px' }}
+      >
+        {/* Logo */}
+        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+          <div style={{
+            background: 'var(--accent-gradient)', padding: '14px', borderRadius: '16px',
+            display: 'inline-flex', marginBottom: '16px'
+          }}>
+            <FiBook size={28} color="white" />
+          </div>
+          <h1 style={{ fontSize: '26px', marginBottom: '6px' }}>SmartStudy AI</h1>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>Sign in to your study companion</p>
+        </div>
+
+        <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+          <div>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px', color: 'var(--text-secondary)', fontSize: '14px' }}>
+              <FiMail size={14} /> Email Address
+            </label>
+            <input
+              id="login-email"
+              type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={e => setEmail(e.target.value)}
+              className="input-field"
+              required
               placeholder="you@example.com"
+              autoComplete="email"
             />
           </div>
-          <div className="form-group">
-            <label>Password</label>
-            <input 
-              type="password" 
-              required 
+          <div>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px', color: 'var(--text-secondary)', fontSize: '14px' }}>
+              <FiLock size={14} /> Password
+            </label>
+            <input
+              id="login-password"
+              type="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={e => setPassword(e.target.value)}
+              className="input-field"
+              required
               placeholder="••••••••"
+              autoComplete="current-password"
             />
           </div>
-          
-          <button disabled={loading} type="submit" className="btn btn-primary auth-submit">
-            {loading ? 'Signing In...' : 'Sign In'}
+          <button
+            id="login-submit"
+            type="submit"
+            className="btn-primary"
+            disabled={loading}
+            style={{ marginTop: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', opacity: loading ? 0.7 : 1 }}
+          >
+            {loading ? (
+              <>
+                <span style={{ width: '16px', height: '16px', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.3)', borderTop: '2px solid white', animation: 'spin 0.7s linear infinite', display: 'inline-block' }} />
+                Signing in...
+              </>
+            ) : (
+              <><FiLogIn /> Sign In</>
+            )}
           </button>
         </form>
-        
-        <div className="auth-footer">
-          Don't have an account? <Link to="/signup">Sign Up</Link>
-        </div>
-      </div>
+
+        <p style={{ textAlign: 'center', marginTop: '24px', color: 'var(--text-secondary)', fontSize: '14px' }}>
+          Don't have an account?{' '}
+          <Link to="/signup" style={{ color: 'var(--accent-purple)', fontWeight: 600 }}>Create one</Link>
+        </p>
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </motion.div>
     </div>
   );
 };
